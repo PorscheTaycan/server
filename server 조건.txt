@@ -23,4 +23,4 @@
 	-> 김지욱이 귓속말을 보내면 김지욱 클라이언트 창에 " 차단당했습니다. " 출력
 
 ipconfig
-
+pyinstaller -w -F client.py
