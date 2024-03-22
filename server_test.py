@@ -9,7 +9,6 @@ lock = threading.Lock()
 
 userlist = ["김중규", "정재현", "허민재", "이윤서", "윤하얀", "전준용", "윤석현", "박희창", "진정현", "김지욱", "성재민", "강병헌", "김자연", "김영기"]
 admin = ["admin"]
-colorlist = ["입장", "퇴장"]
 
 f = open('tq.txt', 'r', encoding='UTF8')
 lines = f.read().split(',')
@@ -46,8 +45,11 @@ class UserManager:
 
     def messageHandler(self, username, msg):   #관리자가 퇴장 시킬 수 있는 함수
         if msg[0] != '/' and self.per:
-            self.sendMessageToAll( '[%s] %s' % (username, msg))
-            return
+            if msg[0] == "t":
+                self.sendMessageToAll('채팅창이 비활성화 되었습니다.')
+            else:
+                self.sendMessageToAll( '[%s] %s' % (username, msg))
+                return
         else: #메세지가 /로 시작한다면
             if msg[0] + msg[1] == '/o' and username == 'admin': #admin이 /o를 입력했을 때
                 self.name = msg[3] + msg[4] + msg[5]
@@ -65,11 +67,12 @@ class UserManager:
                 else:
                     self.per = True
             elif msg[0] + msg[1] == "/w":
-                self.name = msg[3] + msg[4] + msg[5]
+                names = msg.split(' ')
+                self.name = names[1]
                 if self.name in userlist or self.name in 'admin':
                     tmp = msg.split()
                     str1 = self.name + ">>>" # self.name : 받는 사람 이름
-                    str2 = username + '>>>' # username : 보내는 사람 이름
+                    str2 = username + '<<<' # username : 보내는 사람 이름
                     for i in range(2, len(tmp)):
                         str1 += tmp[i] + ' '
                         str2 += tmp[i] + ' '
@@ -79,6 +82,7 @@ class UserManager:
                 else:
                     self.users[username][0].send("없는 유저 입니다.".encode())
                     return
+
         if msg.strip() == '/quit':
             self.removeUser(username)
             return -1
@@ -86,6 +90,7 @@ class UserManager:
     def sendMessageToAll(self, msg):  # 입장하면 전체한테 알림이 가는 함수
         for conn, addr in self.users.values():
             conn.send(msg.encode())
+
 
     # def sendMessageToAll1(self, msg):  # 입장하면 전체한테 알림이 가는 함수
     #     for conn, addr in self.users.values():
@@ -146,7 +151,7 @@ class MyTcpHandler(socketserver.BaseRequestHandler):
         print('[%s]종료' % self.client_address[0])
         self.userman.removeUser(username)
     def registerUsername(self):
-        self.request.send('ID'.encode())
+        self.request.send('ID '.encode())
         while True:
             username = self.request.recv(1024)
             username = username.decode().strip()
